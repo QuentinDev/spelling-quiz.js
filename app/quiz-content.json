@@ -1,0 +1,23 @@
+[
+	{
+		"str": "Bootstrap, c'est la vie !",
+		"mistake": {
+			"name": "",
+			"occurence": 0
+		}
+	},
+	{
+		"str": "Demain il va faire bo",
+		"mistake": {
+			"name": "bo",
+			"occurence": 0
+		}
+	},
+	{
+		"str": "faux : test vrai : test",
+		"mistake": {
+			"name": "test",
+			"occurence": 1
+		}
+	}
+]

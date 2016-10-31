@@ -1,0 +1,16 @@
+.quizSpanElement {
+	transition: background-color 0.2s linear;
+	padding: 2px;
+	margin: -1px;
+	border-radius: 2px;
+}
+.quizSpanElementActive:hover {
+	background-color: rgba(169, 227, 40, 0.50);
+	cursor: pointer;
+}
+.quizSpanElementHover {
+	background-color: rgba(169, 227, 40, 1);
+}
+.quizResult {
+	font-weight: bold;
+}
