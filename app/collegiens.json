@@ -38,35 +38,5 @@
 			"C": "au restaurant"
 		},
 		"correctAnswer": "A"
-	},
-	{
-		"sentance": "Les murs sont [...] et les plafonds sont [...]",
-		"instruction": null,
-		"answers": {
-			"A": "oranges - verts",
-			"B": "orange - vert",
-			"C": "orange - verts"
-		},
-		"correctAnswer": "C"
-	},
-	{
-		"sentance": "Ce voyage nous a coûté cinq [...] quatre-[...] euros.",
-		"instruction": null,
-		"answers": {
-			"A": "cent - vingt",
-			"B": "cents - vingts",
-			"C": "cent - vingts"
-		},
-		"correctAnswer": "C"
-	},
-	{
-		"sentance": "Nous avons [...] à un drôle de bonhomme",
-		"instruction": null,
-		"answers": {
-			"A": "affaire",
-			"B": "à faire",
-			"C": "a faire"
-		},
-		"correctAnswer": "A"
 	}
 ]

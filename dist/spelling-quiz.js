@@ -1,12 +1,13 @@
 (function($) {
-	$.fn.quiz = function()
+	$.fn.quiz = function(quizJsonContent)
 	{
-		function Quiz(quizContainer) {
+		function Quiz(quizContainer, quizJsonContent) {
 			this.quizContainer = quizContainer;
+			this.quizJsonContent = quizJsonContent;
 			this.quizObj = null;
 			this.quizScore = null; //percentage of correct answers
 			this.userCorrectAnswers = null; //number of correct answers
-			this.userChoices = {}; //user choices for each question
+			this.userChoices = []; //user choices for each question
 
 			this.loadQuizContent();
 			this.displayQuizContent();
@@ -17,10 +18,10 @@
 			var self = this;
 
 			//to prevent spam click
-			self.toggleDisableNoErrorButton();
+			// self.toggleDisableNoErrorButton();
 			self.unregisterQuizEvents();
-			this.quizContainer.children('p').not(':hidden').fadeOut(1000, function(){
-				self.toggleDisableNoErrorButton();
+			this.quizContainer.children('div.questionContainer').not(':hidden').fadeOut(1000, function(){
+				// self.toggleDisableNoErrorButton();
 				self.registerQuizEvents();
 				$(this).next().fadeIn();
 
@@ -31,8 +32,10 @@
 
 		Quiz.prototype.loadQuizContent = function(){
 			var self = this;
+
+			//get the quiz content in the json file passed in param
 			$.ajax({
-				url: "app/quiz-content.json",
+				url: self.quizJsonContent,
 				async: false,
 				success: function (data) {
 					self.quizObj = data;
@@ -46,51 +49,51 @@
 
 		Quiz.prototype.displayQuizContent = function(){
 			var self = this;
+			var quizId, questionContainer;
 			$.each(this.quizObj, function(key, value){
-				var strId = "str"+key;
-				self.quizContainer.append("<p id="+strId+" class='quizSentence'></p>");
+				quizId = "quiz"+key;
+				self.quizContainer.append(`<div id=${quizId} class=questionContainer></div>`);
+				questionContainer = $(`#${quizId}`);
 
-				$.each(value.str.split(" "), function(strKey, word){
-					$("#"+strId).append("<span id="+strKey+" class='quizSpanElement quizSpanElementActive'>"+word+"</span> ");
+				//display sentanceif not null
+				questionContainer.append(value.sentance !== null ? `<p class=quizSentence>${value.sentance}</p>` : '');
+
+				//display instruction if not null
+				questionContainer.append(value.instruction !== null ? `<p class=instruction>${value.instruction}</p>` : '');
+
+				questionContainer.append(`<ul class="answers"></ul>`);
+				$.each(value.answers, function(answerKey, answer){
+					// $("#"+strId).append("<span id="+strKey+" class='quizLiAnswer quizLiAnswerActive'>"+answer+"</span> ");
+					questionContainer.children('.answers').append(`<li id=${answerKey} class='quizLiAnswer quizLiAnswerActive'>${answer}</li>`);
 				});
 			});
 
-			//Add title and button
-			this.quizContainer.prepend("<h3>Question : <span id='questionCount'>1</span> / "+self.quizObj.length+"</h3>");
-			this.quizContainer.append("<button id='noErrorButton'>Il n'y a pas de faute</button>");
-
-			//Hide all sentances except the first one
-			this.quizContainer.children('p').not(':first').hide();
+			// Add title and button
+			this.quizContainer.prepend(`<h3><span id='questionCount'>1</span>/${self.quizObj.length}</h3>`);
+			// Hide all question containers except the first one
+			this.quizContainer.children('div.questionContainer').not(':first').hide();
 		};
 
 		Quiz.prototype.registerQuizEvents = function(){
 			var self = this;
-			$('#noErrorButton,.quizSpanElement').click(function(){
+			$('.quizLiAnswer').click(function(){
 				self.saveUserChoice($(this));
 				if(self.checkQuizProgress()) {
+					console.log($(this));
+					$(this).toggleClass('quizLiAnswerSelected');//Select effect
 					self.nextQuizStr();
 				}else{
 					self.endQuiz();
-				}
-
-
-			});
-
-			//Click event on each word span
-			$('.quizSpanElement').click(function(){
-				if(self.checkQuizProgress()) {
-					$(this).toggleClass('quizSpanElementHover');//Select effect
 				}
 			});
 		};
 
 		Quiz.prototype.unregisterQuizEvents = function() {
-			$('#noErrorButton,.quizSpanElement').off();
+			$('#noErrorButton,.quizLiAnswer').off();
 		};
 
 		Quiz.prototype.saveUserChoice = function(elem){
-			//If button is clicked insert false as answer else, insert clicked span id
-			this.userChoices[$('.quizSentence:visible').attr('id')] = isNaN(elem.attr('id')) ? false : elem.attr('id');
+			this.userChoices.push(elem.attr('id'));
 		};
 
 		Quiz.prototype.checkQuizProgress = function(){
@@ -98,7 +101,7 @@
 		};
 
 		Quiz.prototype.endQuiz = function(){
-			$('.quizSpanElement').removeClass('quizSpanElementActive');
+			//$('.quizLiAnswer').removeClass('quizLiAnswerActive');
 
 			//Remove all event handlers
 			this.unregisterQuizEvents();
@@ -107,21 +110,13 @@
 
 			this.getFinalResult();
 
-			$('#quiz-container').append('<p class="quizResult">Votre score est de '+this.quizScore+'% ('+this.userCorrectAnswers+' / '+this.quizObj.length+')</p>');
-		};
-
-		Quiz.prototype.getAllIndexes = function(arr, val) {
-			var indexes = [], i;
-			for(i = 0; i < arr.length; i++)
-				if (arr[i] === val)
-					indexes.push(i);
-			return typeof indexes[0] !== "undefined" ? indexes : [false]; //returns false if answer is empty
+			$('#quiz-container').append(`<p class="quizResult">Votre score est de ${this.quizScore}% (${this.userCorrectAnswers} / ${this.quizObj.length})</p>`);
 		};
 
 		Quiz.prototype.getFinalResult = function() {
 			var self = this;
 			$.each(this.quizObj, function(key, value){
-				self.userCorrectAnswers += self.getAllIndexes(value.str.split(" "), value.mistake.name)[value.mistake.occurence] == self.userChoices["str"+key];
+				self.userCorrectAnswers += value.correctAnswer == self.userChoices[key];
 			});
 
 			//Get the percentage of correct answers
@@ -138,7 +133,7 @@
 			}
 		};
 
-		return new Quiz($(this));
+		return new Quiz($(this), quizJsonContent);
 	};
 
 })(jQuery);
